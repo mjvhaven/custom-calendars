@@ -90,17 +90,25 @@ export default function EnhancedCustomCalendars() {
   };
 
   const persistCalendars = useCallback(async (next) => {
-    if (isReadOnly) return;
+    if (isReadOnly) { console.log('Skipping save - read only'); return; }
+    console.log('Saving calendar:', JSON.stringify(next).substring(0, 200));
     setCalendars(next);
     try { 
-      await window.storage.set('calendars-list', JSON.stringify(next));
+      const jsonStr = JSON.stringify(next);
+      console.log('Storage set value length:', jsonStr.length);
+      await window.storage.set('calendars-list', jsonStr);
       console.log('Calendar saved successfully');
     } catch (e) { 
       console.error('Failed to save calendar:', e);
     }
   }, [isReadOnly]);
 
-  const updateCalendar = (id, next) => persistCalendars(calendars.map(c => c.id === id ? next : c));
+  const updateCalendar = (id, next) => {
+    console.log('updateCalendar called with id:', id);
+    const newCalendars = calendars.map(c => c.id === id ? next : c);
+    console.log('New calendars count:', newCalendars.length);
+    persistCalendars(newCalendars);
+  };
   const removeCalendar = (id) => persistCalendars(calendars.filter(c => c.id !== id));
   const addCalendar = (cal) => { persistCalendars([...calendars, cal]); setShowAdd(false); };
 
