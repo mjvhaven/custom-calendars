@@ -7,23 +7,25 @@ import SettingsModal from './settings_modal.jsx';
 import NewCalendarCard from './new_calendar_card.jsx';
 import PrintPreview from './print_preview.jsx';
 
-if (!window.storage) {
-  window.storage = {
-    store: {},
-    async get(key) {
+// Initialize storage with localStorage fallback
+window.storage = {
+  store: {},
+  async get(key) {
+    try {
       const localValue = localStorage.getItem('cal_' + key);
-      return { value: localValue || this.store[key] || null };
-    },
-    async set(key, value) {
-      this.store[key] = value;
-      try { localStorage.setItem('cal_' + key, value); } catch(e) { console.warn('localStorage full:', e); }
-    },
-    async remove(key) {
-      delete this.store[key];
-      try { localStorage.removeItem('cal_' + key); } catch(e) {}
-    }
-  };
-}
+      if (localValue) return { value: localValue };
+    } catch(e) {}
+    return { value: this.store[key] || null };
+  },
+  async set(key, value) {
+    this.store[key] = value;
+    try { localStorage.setItem('cal_' + key, value); } catch(e) { console.warn('localStorage error:', e); }
+  },
+  async remove(key) {
+    delete this.store[key];
+    try { localStorage.removeItem('cal_' + key); } catch(e) {}
+  }
+};
 
 export { CalendarColumn, DayDetailModal, EventFormModal, SettingsModal, NewCalendarCard, PrintPreview };
 export default function EnhancedCustomCalendars() {
