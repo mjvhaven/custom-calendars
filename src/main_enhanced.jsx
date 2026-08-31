@@ -53,14 +53,16 @@ export default function EnhancedCustomCalendars() {
     }
     (async () => {
       try {
-        const res = await window.storage.get('calendars-list');
-        console.log('Loaded from storage, has value:', !!res?.value, 'length:', res?.value?.length);
-        if (res && res.value) { 
-          const parsed = JSON.parse(res.value);
+        // Check what's in storage
+        const stored = await window.storage.get('calendars-list');
+        console.log('Storage check - has value:', !!stored?.value);
+        if (stored?.value) {
+          console.log('Storage content preview:', stored.value.substring(0, 300));
+          const parsed = JSON.parse(stored.value);
           console.log('Parsed calendars, count:', parsed.length);
           setCalendars(parsed);
-        }
-        else {
+        } else {
+          console.log('No saved calendars, creating seed');
           const today = new Date().toISOString().slice(0, 10);
           const seed = [
             { id: 'earth', kind: 'earth', name: 'Earth', weekLength: 7, tasksEnabled: true },
@@ -76,7 +78,6 @@ export default function EnhancedCustomCalendars() {
           ];
           setCalendars(seed);
           await window.storage.set('calendars-list', JSON.stringify(seed));
-          console.log('Seeded calendars');
         }
       } catch (e) { console.error('Load error:', e); }
       setLoading(false);

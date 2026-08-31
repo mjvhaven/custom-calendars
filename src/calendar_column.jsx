@@ -214,12 +214,14 @@ export default function CalendarColumn({ cal, onUpdateCal, onRemoveCal, isReadOn
           cal={cal}
           onClose={() => setShowSettings(false)}
           onSave={(next) => {
-            console.log('SettingsModal onSave callback triggered');
+            console.log('SettingsModal onSave called with:', JSON.stringify(next).substring(0, 150));
+            console.log('Previous cal:', JSON.stringify(cal).substring(0, 150));
             onUpdateCal(next);
             if (next.kind === 'custom' && monthIndex >= next.months.length) setMonthIndex(0);
             const pos = todayPositionFor(next);
             if (pos) { setYear(pos.year); setMonthIndex(pos.monthIndex); persistCursor(pos.year, pos.monthIndex); }
             setShowSettings(false);
+            console.log('Settings closed after save');
           }}
           onRemove={onRemoveCal ? () => { onRemoveCal(); setShowSettings(false); } : null}
         />
