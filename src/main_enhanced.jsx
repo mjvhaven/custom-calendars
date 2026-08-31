@@ -10,9 +10,18 @@ import PrintPreview from './print_preview.jsx';
 if (!window.storage) {
   window.storage = {
     store: {},
-    async get(key) { return { value: this.store[key] || null }; },
-    async set(key, value) { this.store[key] = value; localStorage.setItem('cal_' + key, value); },
-    async remove(key) { delete this.store[key]; localStorage.removeItem('cal_' + key); }
+    async get(key) {
+      const localValue = localStorage.getItem('cal_' + key);
+      return { value: localValue || this.store[key] || null };
+    },
+    async set(key, value) {
+      this.store[key] = value;
+      try { localStorage.setItem('cal_' + key, value); } catch(e) { console.warn('localStorage full:', e); }
+    },
+    async remove(key) {
+      delete this.store[key];
+      try { localStorage.removeItem('cal_' + key); } catch(e) {}
+    }
   };
 }
 
@@ -83,7 +92,12 @@ export default function EnhancedCustomCalendars() {
   const persistCalendars = useCallback(async (next) => {
     if (isReadOnly) return;
     setCalendars(next);
-    try { await window.storage.set('calendars-list', JSON.stringify(next)); } catch (e) {}
+    try { 
+      await window.storage.set('calendars-list', JSON.stringify(next));
+      console.log('Calendar saved successfully');
+    } catch (e) { 
+      console.error('Failed to save calendar:', e);
+    }
   }, [isReadOnly]);
 
   const updateCalendar = (id, next) => persistCalendars(calendars.map(c => c.id === id ? next : c));
