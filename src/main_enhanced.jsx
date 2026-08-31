@@ -52,7 +52,12 @@ export default function EnhancedCustomCalendars() {
     (async () => {
       try {
         const res = await window.storage.get('calendars-list');
-        if (res && res.value) { setCalendars(JSON.parse(res.value)); }
+        console.log('Loaded from storage, has value:', !!res?.value, 'length:', res?.value?.length);
+        if (res && res.value) { 
+          const parsed = JSON.parse(res.value);
+          console.log('Parsed calendars, count:', parsed.length);
+          setCalendars(parsed);
+        }
         else {
           const today = new Date().toISOString().slice(0, 10);
           const seed = [
@@ -69,8 +74,9 @@ export default function EnhancedCustomCalendars() {
           ];
           setCalendars(seed);
           await window.storage.set('calendars-list', JSON.stringify(seed));
+          console.log('Seeded calendars');
         }
-      } catch (e) { console.error(e); }
+      } catch (e) { console.error('Load error:', e); }
       setLoading(false);
     })();
   }, []);
