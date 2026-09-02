@@ -111,6 +111,7 @@ export default function EnhancedCustomCalendars() {
     console.log('updateCalendar called: id=', id);
     console.log('calendars length before:', calendars.length);
     const newCalendars = calendars.map(c => c.id === id ? next : c);
+    console.log('Matched calendar:', newCalendars.find(c => c.id === id)?.name);
     console.log('calendars length after:', newCalendars.length);
     persistCalendars(newCalendars);
   };
