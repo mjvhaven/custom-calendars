@@ -214,7 +214,6 @@ export default function CalendarColumn({ cal, onUpdateCal, onRemoveCal, isReadOn
           cal={cal}
           onClose={() => setShowSettings(false)}
           onSave={(next) => {
-            console.log('CalendarColumn received save:', JSON.stringify(next).substring(0, 200));
             onUpdateCal(next.id, next);
             if (next.kind === 'custom' && monthIndex >= next.months.length) setMonthIndex(0);
             const pos = todayPositionFor(next);

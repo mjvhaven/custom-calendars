@@ -29,10 +29,7 @@ export default function SettingsModal({ cal, onClose, onSave, onRemove }) {
   const canSave = isEarth ? name.trim() : (name.trim() && months.length > 0 && months.every(m => m.name.trim() && Number(m.length) > 0) && Number(weekLength) > 0);
 
   const save = () => {
-    alert('Save button clicked!');
-    console.log('SAVE ATTEMPT - canSave:', canSave, 'name:', name, 'months:', months, 'weekLength:', weekLength);
     if (isEarth) { 
-      console.log('Saving Earth calendar');
       onSave({ ...cal, name: name.trim(), tasksEnabled }); 
       return; 
     }
@@ -41,16 +38,13 @@ export default function SettingsModal({ cal, onClose, onSave, onRemove }) {
       months: months.map(m => ({ id: m.id, name: m.name.trim(), length: Number(m.length) })),
       tasksEnabled,
     };
-    console.log('Calendar to save:', next);
     if (syncOn) {
       const anchorMonthIndex = Math.max(0, next.months.findIndex(m => m.id === anchorMonthId));
       next.sync = { daysPerEarthDay: Number(daysPerEarthDay), anchorYear: Number(anchorYear), anchorMonthIndex, anchorDay: Number(anchorDay), realDate, realTime };
     } else {
       delete next.sync;
     }
-    console.log('Calling onSave');
     onSave(next);
-    console.log('onSave called');
   };
 
   return (
