@@ -7,26 +7,6 @@ import SettingsModal from './settings_modal.jsx';
 import NewCalendarCard from './new_calendar_card.jsx';
 import PrintPreview from './print_preview.jsx';
 
-// Initialize storage with localStorage fallback
-window.storage = {
-  store: {},
-  async get(key) {
-    try {
-      const localValue = localStorage.getItem('cal_' + key);
-      if (localValue) return { value: localValue };
-    } catch(e) {}
-    return { value: this.store[key] || null };
-  },
-  async set(key, value) {
-    this.store[key] = value;
-    try { localStorage.setItem('cal_' + key, value); } catch(e) { console.warn('localStorage error:', e); }
-  },
-  async remove(key) {
-    delete this.store[key];
-    try { localStorage.removeItem('cal_' + key); } catch(e) {}
-  }
-};
-
 export { CalendarColumn, DayDetailModal, EventFormModal, SettingsModal, NewCalendarCard, PrintPreview };
 export default function EnhancedCustomCalendars() {
   const [loading, setLoading] = useState(true);
@@ -37,6 +17,33 @@ export default function EnhancedCustomCalendars() {
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [notification, setNotification] = useState(null);
   const [contrastReport, setContrastReport] = useState([]);
+
+  // Simple storage using localStorage
+  const storage = {
+    async get(key) {
+      try {
+        const value = localStorage.getItem(key);
+        return value ? { value } : { value: null };
+      } catch (e) {
+        console.error('Storage get error:', e);
+        return { value: null };
+      }
+    },
+    async set(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch (e) {
+        console.error('Storage set error:', e);
+      }
+    },
+    async remove(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        console.error('Storage remove error:', e);
+      }
+    }
+  };
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -53,16 +60,10 @@ export default function EnhancedCustomCalendars() {
     }
     (async () => {
       try {
-        // Check what's in storage
-        const stored = await window.storage.get('calendars-list');
-        console.log('Storage check - has value:', !!stored?.value);
+        const stored = await storage.get('calendars-list');
         if (stored?.value) {
-          console.log('Storage content preview:', stored.value.substring(0, 300));
-          const parsed = JSON.parse(stored.value);
-          console.log('Parsed calendars, count:', parsed.length);
-          setCalendars(parsed);
+          setCalendars(JSON.parse(stored.value));
         } else {
-          console.log('No saved calendars, creating seed');
           const today = new Date().toISOString().slice(0, 10);
           const seed = [
             { id: 'earth', kind: 'earth', name: 'Earth', weekLength: 7, tasksEnabled: true },
@@ -77,9 +78,9 @@ export default function EnhancedCustomCalendars() {
             }
           ];
           setCalendars(seed);
-          await window.storage.set('calendars-list', JSON.stringify(seed));
+          await storage.set('calendars-list', JSON.stringify(seed));
         }
-      } catch (e) { console.error('Load error:', e); }
+      } catch (e) { console.error(e); }
       setLoading(false);
     })();
   }, []);
@@ -99,25 +100,12 @@ export default function EnhancedCustomCalendars() {
   };
 
   const persistCalendars = useCallback(async (next) => {
-    if (isReadOnly) { console.log('Skipping save - read only'); return; }
-    console.log('Saving calendar:', JSON.stringify(next).substring(0, 200));
+    if (isReadOnly) return;
     setCalendars(next);
-    try { 
-      const jsonStr = JSON.stringify(next);
-      console.log('Storage set value length:', jsonStr.length);
-      await window.storage.set('calendars-list', jsonStr);
-      console.log('Calendar saved successfully');
-    } catch (e) { 
-      console.error('Failed to save calendar:', e);
-    }
+    await storage.set('calendars-list', JSON.stringify(next));
   }, [isReadOnly]);
 
-  const updateCalendar = (id, next) => {
-    console.log('updateCalendar called with id:', id);
-    const newCalendars = calendars.map(c => c.id === id ? next : c);
-    console.log('New calendars count:', newCalendars.length);
-    persistCalendars(newCalendars);
-  };
+  const updateCalendar = (id, next) => persistCalendars(calendars.map(c => c.id === id ? next : c));
   const removeCalendar = (id) => persistCalendars(calendars.filter(c => c.id !== id));
   const addCalendar = (cal) => { persistCalendars([...calendars, cal]); setShowAdd(false); };
 
@@ -133,7 +121,7 @@ export default function EnhancedCustomCalendars() {
     showNotification('Calendars exported!');
   };
 
-  const importJSON = (e) => {
+  const importJSON = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -176,7 +164,7 @@ export default function EnhancedCustomCalendars() {
             <>
               <button onClick={exportJSON} style={{ background: '#1c2340', color: '#f1e7d2', border: '1px solid #343c62', padding: '0.5rem 1rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}><Download size={16} /> Export JSON</button>
               <label style={{ background: '#1c2340', color: '#f1e7d2', border: '1px solid #343c62', padding: '0.5rem 1rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}><Upload size={16} /> Import JSON<input type="file" accept=".json" onChange={importJSON} style={{ display: 'none' }} /></label>
-              <button onClick={generateShareLink} style={{ background: '#1c2340', color: '#f1e7d2', border: '1px solid #343c62', padding: '0.5rem 1rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}><Share2 size={16} /> Share</button>
+              <button onClick={generateShareLink} style={{ background: '#1c2340', color: '#f1e7d2', border: '1px solid #343c62', padding: '0.5rem 1rem', borderRadius: '6x', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}><Share2 size={16} /> Share</button>
               <button onClick={() => setShowPrint(true)} style={{ background: '#1c2340', color: '#f1e7d2', border: '1px solid #343c62', padding: '0.5rem 1rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}><Printer size={16} /> Print</button>
             </>
           )}
@@ -194,9 +182,9 @@ export default function EnhancedCustomCalendars() {
           <div style={{ background: '#1c2340', border: '1px solid #343c62', borderRadius: '8px', padding: '1rem', marginBottom: '1rem' }}>
             <div style={{ color: '#f1e7d2', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Share this link:</div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input value={shareUrl} readOnly style={{ flex: 1, background: '#151a2e', border: '1px solid #343c62', color: '#f1e7d2', padding: '0.5rem', borderRadius: '6px', fontSize: '0.875rem' }} />
-              <button onClick={() => { navigator.clipboard.writeText(shareUrl); showNotification('URL copied!'); }} style={{ background: '#c9a86a', color: '#151a2e', border: 'none', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>Copy</button>
-              <button onClick={() => setShareUrl('')} style={{ background: 'transparent', color: '#8b93b0', border: '1px solid #343c62', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>Close</button>
+              <input value={shareUrl} readOnly style={{ flex: 1, background: '#151a2e', border: '1px solid #343c62', color: '#f1e7d2', padding: '0.5rem', borderRadius: '6x', fontSize: '0.875rem' }} />
+              <button onClick={() => { navigator.clipboard.writeText(shareUrl); showNotification('URL copied!'); }} style={{ background: '#c9a86a', color: '#151a2e', border: 'none', padding: '0.5rem 1rem', borderRadius: '6x', cursor: 'pointer' }}>Copy</button>
+              <button onClick={() => setShareUrl('')} style={{ background: 'transparent', color: '#8b93b0', border: '1px solid #343c62', padding: '0.5rem 1rem', borderRadius: '6x', cursor: 'pointer' }}>Close</button>
             </div>
           </div>
         )}

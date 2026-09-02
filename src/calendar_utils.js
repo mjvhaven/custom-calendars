@@ -150,13 +150,13 @@ export function weekdayLabels(cal) {
 
 export async function loadJSON(key, fallback) {
   try {
-    const res = await window.storage.get(key, false);
-    if (res && res.value) return JSON.parse(res.value);
+    const value = localStorage.getItem(key);
+    if (value) return JSON.parse(value);
   } catch (e) { }
   return fallback;
 }
 export async function saveJSON(key, value) {
-  try { await window.storage.set(key, JSON.stringify(value), false); } catch (e) { }
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { }
 }
 
 export function checkContrast(fg, bg, minRatio = 4.5) {
