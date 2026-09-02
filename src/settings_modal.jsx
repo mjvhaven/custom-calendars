@@ -120,9 +120,9 @@ export default function SettingsModal({ cal, onClose, onSave, onRemove }) {
           </>
         )}
 
-        <button onClick={save} disabled={!canSave} style={{ width: '100%', background: canSave ? C.gold : C.line, color: canSave ? '#1a1f35' : C.parchmentDim, border: 'none', borderRadius: '6px', padding: '0.625rem', fontSize: '0.875rem', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem', cursor: canSave ? 'pointer' : 'not-allowed' }}>
-          <Save size={14} /> Save changes
-        </button>
+<button onClick={save} style={{ width: '100%', background: C.gold, color: C.bg, border: 'none', borderRadius: '6px', padding: '0.625rem', fontSize: '0.875rem', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem', cursor: 'pointer' }}>
+  <Save size={14} /> Save changes
+</button>
         {onRemove && <button onClick={onRemove} style={{ width: '100%', color: C.danger, border: `1px solid ${C.danger}`, background: 'transparent', borderRadius: '6px', padding: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>Delete this calendar</button>}
       </div>
     </div>
