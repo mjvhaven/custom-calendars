@@ -29,6 +29,7 @@ export default function SettingsModal({ cal, onClose, onSave, onRemove }) {
   const canSave = isEarth ? name.trim() : (name.trim() && months.length > 0 && months.every(m => m.name.trim() && Number(m.length) > 0) && Number(weekLength) > 0);
 
   const save = () => {
+    alert('Save button clicked!');
     console.log('SAVE ATTEMPT - canSave:', canSave, 'name:', name, 'months:', months, 'weekLength:', weekLength);
     if (isEarth) { 
       console.log('Saving Earth calendar');
