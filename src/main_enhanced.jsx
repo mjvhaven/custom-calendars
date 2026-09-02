@@ -101,11 +101,19 @@ export default function EnhancedCustomCalendars() {
 
   const persistCalendars = useCallback(async (next) => {
     if (isReadOnly) return;
+    console.log('persistCalendars called with:', JSON.stringify(next).substring(0, 150));
     setCalendars(next);
     await storage.set('calendars-list', JSON.stringify(next));
+    console.log('persistCalendars complete');
   }, [isReadOnly]);
 
-  const updateCalendar = (id, next) => persistCalendars(calendars.map(c => c.id === id ? next : c));
+  const updateCalendar = (id, next) => {
+    console.log('updateCalendar called: id=', id);
+    console.log('calendars length before:', calendars.length);
+    const newCalendars = calendars.map(c => c.id === id ? next : c);
+    console.log('calendars length after:', newCalendars.length);
+    persistCalendars(newCalendars);
+  };
   const removeCalendar = (id) => persistCalendars(calendars.filter(c => c.id !== id));
   const addCalendar = (cal) => { persistCalendars([...calendars, cal]); setShowAdd(false); };
 
